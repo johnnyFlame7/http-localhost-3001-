@@ -1,0 +1,75 @@
+// This file defines your database structure.
+// Uses Postgres (Supabase, Neon, or any Postgres host) from day one — the
+// same database works for local development and production. Set
+// DATABASE_URL in your .env to your Supabase connection string, then run:
+// npx prisma db push
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Product {
+  id          Int      @id @default(autoincrement())
+  name        String
+  category    String
+  price       Float
+  description String
+  image       String   // data URL or hosted image URL
+  sizes       String   // comma-separated, e.g. "S,M,L,XL"
+  stock       Boolean  @default(true)
+  tag         String?  // "new" | "featured" | null
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  orderItems  OrderItem[]
+}
+
+model Order {
+  id              Int         @id @default(autoincrement())
+  stripeSessionId String?     @unique
+  customerName    String
+  customerEmail   String
+  address         String
+  city            String
+  postalCode      String
+  country         String
+  subtotal        Float
+  shipping        Float
+  total           Float
+  status          String      @default("pending") // pending | paid | processing | shipped | delivered | cancelled
+  createdAt       DateTime    @default(now())
+  items           OrderItem[]
+}
+
+model OrderItem {
+  id        Int     @id @default(autoincrement())
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  orderId   Int
+  product   Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+  productId Int?
+  name      String
+  price     Float
+  size      String
+  qty       Int
+}
+
+// Single-row table holding editable site content (hero text, logo, about, etc.)
+model Settings {
+  id            Int    @id @default(1)
+  logoImg       String
+  heroImg       String
+  heroTitle     String
+  heroTagline   String
+  storyImg      String
+  storyText     String
+  promoImg      String
+  aboutHeroImg  String
+  aboutText     String
+  contactEmail  String
+  instagram     String
+  shippingText  String
+  returnsText   String
+}
